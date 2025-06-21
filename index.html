@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Thesis Viewer</title>
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Times New Roman', serif;
+      }
+
+      #intro-screen {
+        visibility: visible;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #000;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        z-index: 10;
+        padding: 0 20px;
+        opacity: 1;
+        transition: opacity 1s ease;
+      }
+
+      #intro-screen.fade-out {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 1s ease, visibility 1s ease;
+      }
+
+      #intro-screen h1 {
+        font-size: 4rem;
+        font-weight: bold;
+        margin-bottom: 2rem;
+      }
+
+      #intro-screen p {
+        max-width: 850px;
+        font-size: 1.6rem;
+        line-height: 2.4;
+        margin-bottom: 3rem;
+      }
+
+      #intro-screen button {
+        font-size: 1.2rem;
+        padding: 0.75rem 1.5rem;
+        background: #fff;
+        color: #000;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+
+      #main-viewer {
+        width: 100vw;
+        height: 100vh;
+        display: none;
+        opacity: 0;
+        transition: opacity 1s ease;
+        position: relative;
+      }
+
+      .layer-toggle {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 20;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="intro-screen">
+      <h1>Baekdusan / Changbai Shan</h1>
+      <p>
+        Baekdu-san is a one definite place, yet from epistemological perspective, the mountain exists as multiple forms that constantly evolve through time. This essay aims to analyze how The Mountain has been visually interpreted by three different cultures through virtually reconstructing the mountain through traditional landscape painting as an epistemic archival method.
+      </p>
+      <button id="enter-btn">Enter</button>
+    </div>
+
+    <div id="main-viewer">
+      <div class="layer-toggle">
+        <label><input type="checkbox" class="layer-control" data-layer="painting" checked /> Painting</label>
+      </div>
+      <canvas id="three-canvas"></canvas>
+    </div>
+
+    <!-- ✅ External JavaScript module linked -->
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
