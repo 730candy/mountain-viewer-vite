@@ -8,7 +8,10 @@
     "postinstall": "chmod +x node_modules/.bin/vite || echo 'chmod failed, skipping'"
   },
   "devDependencies": {
-    "vite": "^5.0.0",
-    "three": "^0.160.1"
+    "three": "^0.160.1",
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "gsap": "^3.13.0"
   }
 }

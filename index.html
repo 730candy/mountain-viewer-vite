@@ -1,103 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Thesis Viewer</title>
-    <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        font-family: 'Times New Roman', serif;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <title>Thesis Viewer</title>
+  <style>
+    body, html {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Times New Roman', serif;
+    }
 
-      #intro-screen {
-        visibility: visible;
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: #000;
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        z-index: 10;
-        padding: 0 20px;
-        opacity: 1;
-        transition: opacity 1s ease;
-      }
+    /* Full-page color wheel container */
+    #color-wheel-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 30;
+    }
+    #color-wheel-image {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      display: block;
+      user-select: none;
+      pointer-events: none; /* so image doesn't block hotspot clicks */
+    }
 
-      #intro-screen.fade-out {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transition: opacity 1s ease, visibility 1s ease;
-      }
+    /* Invisible hotspots over text on image */
+    #color-hotspot-blue,
+    #color-hotspot-red,
+    #color-hotspot-changbai,
+    #color-wheel-hotspot-mountain {
+      position: absolute;
+      cursor: pointer;
+      z-index: 35;
+      background-color: transparent;
+    }
 
-      #intro-screen h1 {
-        font-size: 4rem;
-        font-weight: bold;
-        margin-bottom: 2rem;
-      }
+    /* Positions & sizes */
+    #color-hotspot-blue {
+      top: 68%;
+      left: 28%;
+      width: 10%;
+      height: 15%;
+    }
+    #color-hotspot-red {
+      top: 68%;
+      left: 62%;
+      width: 10%;
+      height: 15%;
+    }
+    #color-hotspot-changbai {
+      top: 16%;
+      left: 45%;
+      width: 10%;
+      height: 15%;
+    }
+    #color-wheel-hotspot-mountain {
+      top: 51%;
+      left: 45%;
+      width: 10%;
+      height: 15%;
+    }
 
-      #intro-screen p {
-        max-width: 850px;
-        font-size: 1.6rem;
-        line-height: 2.4;
-        margin-bottom: 3rem;
-      }
+    /* Info box styling */
+    .info-box {
+      position: absolute;
+      max-width: 300px;
+      background: rgba(255,255,255,0.9);
+      color: #000;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 40;
+    }
 
-      #intro-screen button {
-        font-size: 1.2rem;
-        padding: 0.75rem 1.5rem;
-        background: #fff;
-        color: #000;
-        border: none;
-        cursor: pointer;
-        border-radius: 4px;
-      }
+    /* Intro screen styles */
+    #intro-screen {
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      z-index: 20;
+      padding: 0 20px;
+      transition: opacity 1s ease, visibility 1s ease;
+    }
+    #intro-screen.visible {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #intro-screen h1 {
+      font-size: 4rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+    }
+    #intro-screen p {
+      max-width: 850px;
+      font-size: 1.6rem;
+      line-height: 2.4;
+      margin-bottom: 3rem;
+    }
+    #intro-screen button {
+      font-size: 1.2rem;
+      padding: 0.75rem 1.5rem;
+      background: #fff;
+      color: #000;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
 
-      #main-viewer {
-        width: 100vw;
-        height: 100vh;
-        display: none;
-        opacity: 0;
-        transition: opacity 1s ease;
-        position: relative;
-      }
+    /* Main 3D viewer container */
+    #main-viewer {
+      width: 100vw;
+      height: 100vh;
+      display: none;
+      opacity: 0;
+      transition: opacity 1s ease;
+      position: relative;
+    }
+    #main-viewer.visible {
+      display: block;
+      opacity: 1;
+    }
+    .layer-toggle {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 20;
+    }
+    .layer-toggle label {
+      display: block;
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- Color wheel full page -->
+  <div id="color-wheel-screen">
+    <img id="color-wheel-image" src="/image/color-wheel.jpg" alt="Color Wheel" />
 
-      .layer-toggle {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: rgba(255, 255, 255, 0.9);
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 14px;
-        z-index: 20;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="intro-screen">
-      <h1>Baekdusan / Changbai Shan</h1>
-      <p>
-        Baekdu-san is a one definite place, yet from epistemological perspective, the mountain exists as multiple forms that constantly evolve through time. This essay aims to analyze how The Mountain has been visually interpreted by three different cultures through virtually reconstructing the mountain through traditional landscape painting as an epistemic archival method.
-      </p>
-      <button id="enter-btn">Enter</button>
+    <!-- Invisible hotspots -->
+    <div id="color-hotspot-blue" title="Blue Baekdusan"></div>
+    <div id="color-hotspot-red" title="Red Baekdusan"></div>
+    <div id="color-hotspot-changbai" title="ChangbaiShan"></div>
+    <div id="color-wheel-hotspot-mountain" title="The Mountain"></div>
+
+    <!-- Info boxes -->
+    <div id="info-blue" class="info-box"></div>
+    <div id="info-red" class="info-box"></div>
+    <div id="info-changbai" class="info-box"></div>
+    <div id="info-mountain" class="info-box"></div>
+  </div>
+
+  <!-- Intro page -->
+  <div id="intro-screen">
+    <h1>Baekdusan / Changbai Shan</h1>
+    <p>
+      Baekdu-san is a one definite place, yet from epistemological perspective, the mountain exists as multiple forms that constantly evolve through time. This essay aims to analyze how The Mountain has been visually interpreted by three different cultures through virtually reconstructing the mountain through traditional landscape painting as an epistemic archival method.
+    </p>
+    <button id="enter-btn">Enter</button>
+  </div>
+
+  <!-- Main 3D viewer -->
+  <div id="main-viewer">
+    <div class="layer-toggle">
+      <label><input type="checkbox" class="layer-control" data-layer="imsonghee" checked /> Im Song Hee</label>
+      <label><input type="checkbox" class="layer-control" data-layer="jangjaesik" checked /> Jang Jae Sik</label>
+      <label><input type="checkbox" class="layer-control" data-layer="wangqinghuai" checked /> Wang Qinghui</label>
     </div>
+    <canvas id="three-canvas"></canvas>
+  </div>
 
-    <div id="main-viewer">
-      <div class="layer-toggle">
-        <label><input type="checkbox" class="layer-control" data-layer="painting" checked /> Painting</label>
-      </div>
-      <canvas id="three-canvas"></canvas>
-    </div>
-
-    <!-- ✅ External JavaScript module linked -->
-    <script type="module" src="./main.js"></script>
-  </body>
+  <!-- External JS -->
+  <script type="module" src="./main.js"></script>
+</body>
 </html>
