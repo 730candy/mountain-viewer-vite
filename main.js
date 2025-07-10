@@ -1,11 +1,15 @@
+// main.js
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-const colorWheelScreen = document.getElementById('color-wheel-screen');
+// DOM Elements
+const mapScreen = document.getElementById('map-screen');
+const mapImage = document.getElementById('map-image');
 const introScreen = document.getElementById('intro-screen');
-const mainViewer = document.getElementById('main-viewer');
 const enterButton = document.getElementById('enter-btn');
+const colorWheelScreen = document.getElementById('color-wheel-screen');
+const mainViewer = document.getElementById('main-viewer');
 
 const hotspots = {
   blue: document.getElementById('color-hotspot-blue'),
@@ -22,37 +26,63 @@ const infos = {
 };
 
 const infoText = {
-  blue: `Paektu Mountain or Baekdu Mountain (Korean: 백두산)  is revered as a mythical and ancestral origin, deeply embedded in nationalist discourse through the foundation myth of Dangun, the legendary progenitor of the Korean people. Although geographically distant from daily life in the South, the mountain is central to the imagined continuity of Korean identity, often invoked in literature, school textbooks, and ceremonial references as the “spiritual root” of the nation. Its snow-capped peak represents both a lost geography under division and an aspirational symbol of reunified Korea. In South Korean visual culture, Baekdu is rendered as majestic and remote—untouched by modernity—preserving a sense of unfulfilled historical wholeness.`,
-  red: `Paektu Mountain or Baekdu Mountain (Korean: 백두산) is exalted not only as a sacred ancestral site but as the birthplace of revolution. It is mythologized as the birthplace of Kim Jong-il, and thus stands as both spiritual origin and revolutionary shrine. The state integrates the mountain deeply into its propaganda, naming missiles, military units, and ideological doctrines after it. Unlike in the South, where Baekdu represents a longing for unity, in the North, it affirms legitimacy and heroic continuity—linking ancient myth, anti-Japanese resistance, and the ruling Kim family into a seamless narrative. In state art and monuments, Paektu is rendered in stark, monumental forms, elevating it above nature into the realm of ideological permanence.`,
-  changbai: `The Changbai Mountains (simplified Chinese: 长白山; traditional Chinese: 長白山) is both a majestic natural treasure and a key part of regional identity, especially within Jilin Province. Rooted in classical Daoist and imperial geography, it is historically revered for its biodiversity, mineral richness, and sacred peak. As the source of the Songhua, Tumen, and Yalu rivers, it holds ecological and geopolitical importance, marking a natural boundary and a shared yet contested frontier. Within Chinese art and literature, Changbai is often represented through the lens of Shanshui painting traditions, emphasizing harmony between landscape and spirit. In recent years, it has also been framed within UNESCO geopark initiatives and domestic tourism as a symbol of national ecological heritage and ethnic unity—including ties to Manchu cultural legacy.`,
+  blue: `Paektu Mountain or Baekdu Mountain (Korean: 백두산) is an active stratovolcano on the Chinese–North Korean border.[3] In China, it is known as Changbai Mountain (Chinese: 长白山). At 2,744 m (9,003 ft), it is the tallest mountain in North Korea and Northeast China and the tallest mountain of the Baekdu-daegan and Changbai mountain ranges. The highest peak, called Janggun Peak, belongs to North Korea. The mountain notably has a caldera that contains a large crater lake called Heaven Lake, and is also the source of the Songhua, Tumen, and Yalu rivers. Korean and Manchu people assign a mythical quality to the mountain and its lake, and consider the mountain to be their ancestral homeland.`,
+  red: `Paektu Mountain or Baekdu Mountain (Korean: 백두산) is an active stratovolcano on the Chinese–North Korean border.[3] In China, it is known as Changbai Mountain (Chinese: 长白山). At 2,744 m (9,003 ft), it is the tallest mountain in North Korea and Northeast China and the tallest mountain of the Baekdu-daegan and Changbai mountain ranges. The highest peak, called Janggun Peak, belongs to North Korea. The mountain notably has a caldera that contains a large crater lake called Heaven Lake, and is also the source of the Songhua, Tumen, and Yalu rivers. Korean and Manchu people assign a mythical quality to the mountain and its lake, and consider the mountain to be their ancestral homeland.`,
+  changbai: `The Changbai Mountains (simplified Chinese: 长白山; traditional Chinese: 長白山; lit. 'long white mountain') are a major mountain range in East Asia that extends from the Northeast Chinese provinces of Heilongjiang, Jilin and Liaoning, across the China-North Korea border (41°41' to 42°51'N; 127°43' to 128°16'E), to the North Korean provinces of Ryanggang and Chagang. They are also referred to as the Šanggiyan Mountains in the Manchu language, or the Great Paekdu in Korean. Most of its peaks exceed 2,000 m (6,600 ft) in height, with the tallest summit being Paektu Mountain at 2,744 m (9,003 ft), which contains the Heaven Lake, the highest volcanic crater lake in the world at a surface elevation of 2,189.1 m (7,182 ft). The protected area Longwanqun National Forest Park is located within the vicinity of the mountain range.`,
   mountain: `Click to proceed to the introduction page.`,
 };
 
+// 1. Scroll to center of map image on load
+window.addEventListener('load', () => {
+  const scrollToMiddle = () => {
+    const scrollTo = mapImage.offsetHeight / 2 - window.innerHeight / 2;
+    mapScreen.scrollTop = scrollTo;
+  };
+  if (mapImage.complete) scrollToMiddle();
+  else mapImage.onload = scrollToMiddle;
+});
+
+// 2. Click on map screen => show intro screen
+mapScreen.addEventListener('click', () => {
+  mapScreen.classList.add('fade-out');
+  setTimeout(() => {
+    mapScreen.style.display = 'none';
+    introScreen.classList.add('visible');
+  }, 1000);
+});
+
+// 3. Click on Enter => show color wheel
+enterButton.addEventListener('click', () => {
+  introScreen.classList.remove('visible');
+  introScreen.classList.add('fade-out');
+  setTimeout(() => {
+    introScreen.style.display = 'none';
+    colorWheelScreen.style.display = 'block';
+  }, 1000);
+});
+
+// 4. Click on Mountain hotspot => show 3D viewer
+hotspots.mountain.addEventListener('click', () => {
+  colorWheelScreen.style.display = 'none';
+  mainViewer.classList.add('visible');
+  init3DViewer();
+});
+
+// Tooltip behavior
 function showInfo(type) {
   const hotspot = hotspots[type];
   const info = infos[type];
   info.textContent = infoText[type];
   info.style.opacity = '1';
-
-  switch(type) {
-    case 'blue': info.style.color = 'blue'; break;
-    case 'red': info.style.color = 'red'; break;
-    case 'changbai': info.style.color = 'goldenrod'; break;
-    case 'mountain': info.style.color = 'black'; break;
-    default: info.style.color = 'black';
-  }
-
   const rect = hotspot.getBoundingClientRect();
   let left = rect.right + 10;
   let top = rect.top;
-
   if (left + info.offsetWidth > window.innerWidth) {
     left = rect.left - info.offsetWidth - 10;
   }
   if (top + info.offsetHeight > window.innerHeight) {
     top = window.innerHeight - info.offsetHeight - 10;
   }
-
   info.style.left = `${left}px`;
   info.style.top = `${top}px`;
 }
@@ -66,32 +96,41 @@ Object.keys(hotspots).forEach((type) => {
   hotspots[type].addEventListener('mouseleave', () => hideInfo(type));
 });
 
-hotspots.mountain.addEventListener('click', () => {
-  colorWheelScreen.style.display = 'none';
-  introScreen.classList.add('visible');
-});
+// Dummy artistInfo to avoid error
+const artistInfo = {
+  imsonghee: {
+    name: 'Im Song Hee',
+    bio: `
+      <p><strong>Title:</strong> Baekdusan (백두산)</p>
+      <p><strong>Date:</strong> 1997</p>
+      <p>The painting above is contemporary traditional landscape depiction of Baekdusan Lake by South Korean artist Im Song Hee. It was featured in the exhibition 'Painting and Imagining Baekdu Mountains' in South Korea, which explored the theme of the sacred mountains of Korean nation, captured on canvas, through works by multiple artists. The paintings were drawn to grieve the division between the North and South and reminds of the value as symbolic mountain of the nation. Based on the geographical feature visible in the painting, the approximate direction of the artist's perspective was estimated and then projected onto the 3D model of the mountain. It is supposed that the vantage point corresponds to Chinese side of the mountain, looking southward over the lake towards the North Korean side. Such orientation is not purely upon the artist’s will but guided within the range of geopolitical force. The perspective informs of the physical inaccessibility to North Korean territory that it can only be gazed upon from Chinese side. The faint ridge lines visible in the distance symbolically reflect the unreachable territory that was once shared. The affective territory that the artist is perceiving is, ironically, diverged into two different nations where the bodily experienced territory is China while the visual memory roots in North Korean territory. Eventually, the painting as an archive feed into collective memory in constructing how The Mountain is pictured in the culture.</p>
+      <p>The collective memory is constructed by primary source (embodied experience of individual or eyewitness), secondary resource (archives, written records, and cultural representations of places); primary source transmitted to the group in the form of secondary resource. As Erll and Rigney (2006) explain, “the memories that are shared within generations and across different generations are the product of public acts of remembrance using a variety of media. Stories, both oral and written, images, museums, monuments: these all work together in creating and sustaining ‘sites of memory’”. And the knowledge obtained from secondary resources, in return, becomes a foundation in shaping the bodily experience of how individuals perceive and engage with space (primary resources). Thus, collective memory is an ongoing process constantly being updated by the contribution who both draw from and add the group's shared memory landscape.</p>
+    `
+  },
+  jangjaesik: {
+    name: 'Jang Jae Sik',
+    bio: `
+      <p><strong>Title:</strong> Heaven Lake in July (7월의 백두산 천지)</p>
+      <p><strong>Date:</strong> 1996</p>
+      <p>The painting is Heaven Lake at the summit of The Mountain by North Korean artist, Jang Jae Sik. In the painting itself, the border is not apparent. However, when projected on to the 3D model, the legal political boundary running across Heaven Lake becomes visible. The foreground depicted lies in North Korean territory, while the background stretches across into Chinese territory, revealing how visual representations obscure geopolitical division.</p>
+    `
+  },
+  wangqinghuai: {
+    name: 'Wang Qinghuai',
+    bio: `
+      <p><strong>Title:</strong> Lin Hai Zhaohui (林海朝晖)</p>
+      <p><strong>Date:</strong> 1974</p>
+      <p>The painting in the upper frame is a Chinese propaganda poster by Wang Qinghuai, depicting Changbai Shan in the far distance. As the artist is one of the notable figures in Jilin Province, and the artwork was exhibited as part of the Changbai Mountain exhibition, this piece presumably would have been painted from a local vantage point within Jilin, gazing towards The Mountain from within the region's lived landscape. Using the prominent gorge running down the slope on the right as a spatial reference, the perspective can be geographically estimated. The Mountain's appearance in the distance background, rather than as a central subject, suggests its regular visibility as part of the everyday surroundings. This kind of compositional framing reflects emotional intimacy that develops not only from dwelling within a place, but from seeing it regularly, embedded within the spatial rhythms of daily life. Unlike portrayals that isolate the mountain as an iconic or sacred summit, this image positions Changbai Shan as interwoven in the local life.</p>
+    `
+  }
+};
 
-enterButton.addEventListener('click', () => {
-  introScreen.classList.remove('visible');
-  introScreen.classList.add('fade-out');
-  setTimeout(() => {
-    introScreen.style.display = 'none';
-    mainViewer.classList.add('visible');
-    init3DViewer();
-  }, 1000);
-});
-
+// === 3D VIEWER ===
 function init3DViewer() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xe0e0ff);
 
-  const camera = new THREE.PerspectiveCamera(
-    60,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-  );
-
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({
     canvas: document.getElementById('three-canvas'),
     antialias: true,
@@ -102,17 +141,25 @@ function init3DViewer() {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
 
-  // Lighting only for terrain/environment - no separate lights for paintings/frames
   const terrainLight = new THREE.DirectionalLight(0xffffff, 10.0);
   terrainLight.position.set(50, 100, 50);
   scene.add(terrainLight);
   scene.add(new THREE.AmbientLight(0x404040));
+
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
 
   const loader = new GLTFLoader();
   loader.load('/models/mountain3.glb', (gltf) => {
     const model = gltf.scene;
     model.scale.set(0.01, 0.01, 0.01);
     scene.add(model);
+
+    const layers = {
+      imsonghee: [],
+      jangjaesik: [],
+      wangqinghuai: [],
+    };
 
     const box = new THREE.Box3().setFromObject(model);
     const center = new THREE.Vector3();
@@ -122,122 +169,91 @@ function init3DViewer() {
     controls.target.copy(center);
     controls.update();
 
-// ...rest of your code above
+    model.traverse((child) => {
+      if (child.isMesh) {
+        const name = child.name.toLowerCase();
 
-model.traverse((child) => {
-  if (child.isMesh) {
-    const name = child.name.toLowerCase();
-    console.log('MESH:', name);
+        if (name.includes('imsonghee')) child.userData.layer = 'imsonghee';
+        else if (name.includes('jangjaesik')) child.userData.layer = 'jangjaesik';
+        else if (name.includes('wangqinghuai')) child.userData.layer = 'wangqinghuai';
+        else if (name.includes('projection')) child.userData.layer = 'projection';
+        else if (name.includes('terrain')) child.userData.layer = 'terrain';
+        else child.userData.layer = 'misc';
 
-    if (name.includes('projection')) {
-      // Projection with multiply blending, unlit
-      child.material = new THREE.MeshBasicMaterial({
-        map: child.material.map,
-        transparent: true,
-        opacity: 1,
-        toneMapped: false,
-        blending: THREE.MultiplyBlending,
-        depthWrite: false,
-      });
-      // Assign projection to painter layer for toggling
-      if (name.includes('imsonghee')) child.userData.layer = 'imsonghee';
-      else if (name.includes('jangjaesik')) child.userData.layer = 'jangjaesik';
-      else if (name.includes('wangqinghuai')) child.userData.layer = 'wangqinghuai';
-      else child.userData.layer = 'projection'; // fallback
-      child.visible = true;
+        if (layers[child.userData.layer]) {
+          layers[child.userData.layer].push(child);
+        }
 
-    } else if (
-      name.includes('frame')
-    ) {
-      // Frames: MeshStandardMaterial with gold color for shiny effect
-      child.material = new THREE.MeshStandardMaterial({
-        map: child.material.map,
-        color: 0xffd700, // Gold color
-        metalness: 1,
-        roughness: 0.5,
-        transparent: true,
-      });
-      // Assign frame to artist layer based on name (if possible)
-      if (name.includes('imsonghee')) child.userData.layer = 'imsonghee';
-      else if (name.includes('jangjaesik')) child.userData.layer = 'jangjaesik';
-      else if (name.includes('wangqinghuai')) child.userData.layer = 'wangqinghuai';
-      else child.userData.layer = 'frame';
-      child.visible = true;
-
-    } else if (
-      name.includes('imsonghee') ||
-      name.includes('jangjaesik') ||
-      name.includes('wangqinghuai')
-    ) {
-      // Paintings as unlit MeshBasicMaterial (to preserve true colors)
-      child.material = new THREE.MeshBasicMaterial({
-        map: child.material.map,
-        transparent: true,
-      });
-      if (name.includes('imsonghee')) child.userData.layer = 'imsonghee';
-      else if (name.includes('jangjaesik')) child.userData.layer = 'jangjaesik';
-      else if (name.includes('wangqinghuai')) child.userData.layer = 'wangqinghuai';
-      else if (name.includes('frame')) child.userData.layer = 'frame';
-      else child.userData.layer = 'painting';
-      child.visible = true;
-
-    } else if (name.includes('terrain')) {
-      // Terrain: normal shading and transparency
-      child.material.transparent = true;
-      child.material.opacity = 0.5;
-      child.material.depthWrite = false;
-      child.userData.layer = 'terrain';
-      child.visible = true;
-    }
-  }
-});
-
-
-    // Create UI for painter toggles (checkboxes)
-    const layerToggleContainer = document.createElement('div');
-    layerToggleContainer.className = 'layer-toggle';
-    layerToggleContainer.style.position = 'absolute';
-    layerToggleContainer.style.top = '10px';
-    layerToggleContainer.style.left = '10px';
-    layerToggleContainer.style.background = 'rgba(255, 255, 255, 0.9)';
-    layerToggleContainer.style.padding = '10px';
-    layerToggleContainer.style.borderRadius = '8px';
-    layerToggleContainer.style.fontSize = '14px';
-    layerToggleContainer.style.zIndex = '20';
-
-    const painters = [
-      { label: 'Im Song Hee', layer: 'imsonghee' },
-      { label: 'Jang Jae Sik', layer: 'jangjaesik' },
-      { label: 'Wang Qinghuai', layer: 'wangqinghuai' },
-    ];
-
-    painters.forEach((painter) => {
-      const label = document.createElement('label');
-      label.style.display = 'block';
-      label.style.marginBottom = '6px';
-
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = true;
-      checkbox.className = 'layer-control';
-      checkbox.dataset.layer = painter.layer;
-
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(' ' + painter.label));
-      layerToggleContainer.appendChild(label);
+        if (name.includes('projection')) {
+          child.material = new THREE.MeshBasicMaterial({
+            map: child.material.map,
+            transparent: true,
+            opacity: 1,
+            toneMapped: false,
+            blending: THREE.MultiplyBlending,
+            depthWrite: false,
+          });
+          child.userData.clickable = false;
+        } else if (name.includes('frame')) {
+          child.material = new THREE.MeshStandardMaterial({
+            map: child.material.map,
+            color: 0xffd700,
+            metalness: 1,
+            roughness: 0.5,
+            transparent: true,
+          });
+          child.userData.clickable = false;
+        } else if (
+          name.includes('imsonghee') ||
+          name.includes('jangjaesik') ||
+          name.includes('wangqinghuai')
+        ) {
+          child.material = new THREE.MeshBasicMaterial({
+            map: child.material.map,
+            transparent: true,
+          });
+          child.userData.clickable = true;
+        } else if (name.includes('terrain')) {
+          child.material.transparent = true;
+          child.material.opacity = 0.5;
+          child.material.depthWrite = false;
+          child.userData.clickable = false;
+        } else {
+          child.userData.clickable = false;
+        }
+      }
     });
 
-    document.body.appendChild(layerToggleContainer);
+    document.addEventListener('click', (event) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(model.children, true);
 
-    // Toggle visibility by checkboxes
-    document.querySelectorAll('.layer-control').forEach((input) => {
-      input.addEventListener('change', (e) => {
+      for (let intersect of intersects) {
+        const obj = intersect.object;
+        const layer = obj.userData.layer;
+
+        if (obj.userData.clickable && artistInfo[layer]) {
+          document.getElementById('artist-name').textContent = artistInfo[layer].name;
+          document.getElementById('artist-bio').innerHTML = artistInfo[layer].bio;
+          document.getElementById('artist-info-modal').classList.remove('hidden');
+          break;
+        }
+      }
+    });
+
+    document.getElementById('modal-close').addEventListener('click', () => {
+      document.getElementById('artist-info-modal').classList.add('hidden');
+    });
+
+    document.querySelectorAll('.layer-control').forEach((checkbox) => {
+      checkbox.addEventListener('change', (e) => {
         const layer = e.target.dataset.layer;
-        model.traverse((child) => {
-          if (child.userData.layer === layer) {
-            child.visible = e.target.checked;
-          }
-        });
+        const visible = e.target.checked;
+        if (layers[layer]) {
+          layers[layer].forEach((obj) => (obj.visible = visible));
+        }
       });
     });
   });

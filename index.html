@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Thesis Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body, html {
       margin: 0; padding: 0;
@@ -11,76 +12,31 @@
       font-family: 'Times New Roman', serif;
     }
 
-    /* Full-page color wheel container */
-    #color-wheel-screen {
+    /* ==== MAP SCREEN ==== */
+    #map-screen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      z-index: 30;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow-y: auto;
+      z-index: 100;
+      opacity: 1;
+      transition: opacity 1s ease;
     }
-    #color-wheel-image {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      display: block;
-      user-select: none;
-      pointer-events: none; /* so image doesn't block hotspot clicks */
-    }
-
-    /* Invisible hotspots over text on image */
-    #color-hotspot-blue,
-    #color-hotspot-red,
-    #color-hotspot-changbai,
-    #color-wheel-hotspot-mountain {
-      position: absolute;
-      cursor: pointer;
-      z-index: 35;
-      background-color: transparent;
-    }
-
-    /* Positions & sizes */
-    #color-hotspot-blue {
-      top: 68%;
-      left: 28%;
-      width: 10%;
-      height: 15%;
-    }
-    #color-hotspot-red {
-      top: 68%;
-      left: 62%;
-      width: 10%;
-      height: 15%;
-    }
-    #color-hotspot-changbai {
-      top: 16%;
-      left: 45%;
-      width: 10%;
-      height: 15%;
-    }
-    #color-wheel-hotspot-mountain {
-      top: 51%;
-      left: 45%;
-      width: 10%;
-      height: 15%;
-    }
-
-    /* Info box styling */
-    .info-box {
-      position: absolute;
-      max-width: 300px;
-      background: rgba(255,255,255,0.9);
-      color: #000;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 1rem;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      pointer-events: none;
+    #map-screen.fade-out {
       opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 40;
+      pointer-events: none;
+    }
+    #map-image {
+      max-width: 100%;
+      height: auto;
     }
 
-    /* Intro screen styles */
+    /* ==== INTRO SCREEN ==== */
     #intro-screen {
+      display: none;
       visibility: hidden;
       opacity: 0;
       pointer-events: none;
@@ -93,7 +49,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      z-index: 20;
+      z-index: 90;
       padding: 0 20px;
       transition: opacity 1s ease, visibility 1s ease;
     }
@@ -102,6 +58,10 @@
       opacity: 1;
       pointer-events: auto;
     }
+    #intro-screen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
     #intro-screen h1 {
       font-size: 4rem;
       font-weight: bold;
@@ -109,8 +69,8 @@
     }
     #intro-screen p {
       max-width: 850px;
-      font-size: 1.6rem;
-      line-height: 2.4;
+      font-size: 1.2rem;
+      line-height: 2.0;
       margin-bottom: 3rem;
     }
     #intro-screen button {
@@ -123,7 +83,58 @@
       border-radius: 4px;
     }
 
-    /* Main 3D viewer container */
+    /* ==== COLOR WHEEL SCREEN ==== */
+    #color-wheel-screen {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 80;
+    }
+    #color-wheel-image {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      display: block;
+      user-select: none;
+      pointer-events: none;
+    }
+    #color-hotspot-blue,
+    #color-hotspot-red,
+    #color-hotspot-changbai,
+    #color-wheel-hotspot-mountain {
+      position: absolute;
+      cursor: pointer;
+      z-index: 85;
+      background-color: transparent;
+    }
+    #color-hotspot-blue {
+      top: 68%; left: 28%; width: 10%; height: 15%;
+    }
+    #color-hotspot-red {
+      top: 68%; left: 62%; width: 10%; height: 15%;
+    }
+    #color-hotspot-changbai {
+      top: 16%; left: 45%; width: 10%; height: 15%;
+    }
+    #color-wheel-hotspot-mountain {
+      top: 51%; left: 45%; width: 10%; height: 15%;
+    }
+    .info-box {
+      position: absolute;
+      max-width: 300px;
+      background: rgba(255,255,255,0.9);
+      color: #000;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 90;
+    }
+
+    /* ==== 3D VIEWER ==== */
     #main-viewer {
       width: 100vw;
       height: 100vh;
@@ -151,36 +162,84 @@
       margin-bottom: 6px;
       cursor: pointer;
     }
+
+    /* ==== ARTIST MODAL ==== */
+    .info-modal {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 400px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+      z-index: 100;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 80px;
+      transition: transform 0.3s ease;
+    }
+    .info-modal.hidden {
+      transform: translateX(100%);
+    }
+    .modal-content {
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 360px;
+      color: #000;
+      font-family: 'Times New Roman', serif;
+      position: relative;
+      max-height: 80vh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 8px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .modal-content::-webkit-scrollbar {
+      display: none;
+    }
+    #modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <!-- Color wheel full page -->
+
+  <!-- 1️⃣ MAP SCREEN -->
+  <div id="map-screen">
+    <img id="map-image" src="/image/Mountain_range.jpg" alt="Mountain Range Map" />
+  </div>
+
+  <!-- 2️⃣ INTRO SCREEN -->
+  <div id="intro-screen">
+    <h1>Baekdusan / Changbai Shan</h1>
+    <p>
+      ‘Cultural memory is not bound to one nation, one language, or one ethnicity. It is always shaped by cross-cultural contact, exchange, and appropriation’ (Erl, 2008) .  
+The Mountain is a shared transcultural landscape where divergent memory develops within a single geographical feature. As Yi Fu Tuan argues, "thought creates distance an destroys the immediacy of direct experience, yet it is by thoughtful reflection that the exclusive moments of the past draw near to us in present reality and gain a measure of permanence" (Tuan, 1977 ). Each culture has their own perception on The Mountain derived internally, situated in different standpoints. Consequently, ununified affective territoriality creates conflicts in emotional and symbolic claim to the landscape outside the legal ownership. The overlapping values of geography, politics, and culture create tension between cultures.
+    </p>
+    <button id="enter-btn">Enter</button>
+  </div>
+
+  <!-- 3️⃣ COLOR WHEEL SCREEN -->
   <div id="color-wheel-screen">
     <img id="color-wheel-image" src="/image/color-wheel.jpg" alt="Color Wheel" />
-
-    <!-- Invisible hotspots -->
     <div id="color-hotspot-blue" title="Blue Baekdusan"></div>
     <div id="color-hotspot-red" title="Red Baekdusan"></div>
     <div id="color-hotspot-changbai" title="ChangbaiShan"></div>
     <div id="color-wheel-hotspot-mountain" title="The Mountain"></div>
-
-    <!-- Info boxes -->
     <div id="info-blue" class="info-box"></div>
     <div id="info-red" class="info-box"></div>
     <div id="info-changbai" class="info-box"></div>
     <div id="info-mountain" class="info-box"></div>
   </div>
 
-  <!-- Intro page -->
-  <div id="intro-screen">
-    <h1>Baekdusan / Changbai Shan</h1>
-    <p>
-      Baekdu-san is a one definite place, yet from epistemological perspective, the mountain exists as multiple forms that constantly evolve through time. This essay aims to analyze how The Mountain has been visually interpreted by three different cultures through virtually reconstructing the mountain through traditional landscape painting as an epistemic archival method.
-    </p>
-    <button id="enter-btn">Enter</button>
-  </div>
-
-  <!-- Main 3D viewer -->
+  <!-- 4️⃣ 3D VIEWER -->
   <div id="main-viewer">
     <div class="layer-toggle">
       <label><input type="checkbox" class="layer-control" data-layer="imsonghee" checked /> Im Song Hee</label>
@@ -190,7 +249,16 @@
     <canvas id="three-canvas"></canvas>
   </div>
 
-  <!-- External JS -->
+  <!-- ARTIST MODAL -->
+  <div id="artist-info-modal" class="info-modal hidden">
+    <div class="modal-content">
+      <span id="modal-close">&times;</span>
+      <h2 id="artist-name"></h2>
+      <p id="artist-bio"></p>
+    </div>
+  </div>
+
+  <!-- JS ENTRY POINT -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>
