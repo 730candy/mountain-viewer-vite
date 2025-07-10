@@ -10,6 +10,7 @@ const introScreen = document.getElementById('intro-screen');
 const enterButton = document.getElementById('enter-btn');
 const colorWheelScreen = document.getElementById('color-wheel-screen');
 const mainViewer = document.getElementById('main-viewer');
+const viewerNote = document.getElementById('viewer-note');
 
 const hotspots = {
   blue: document.getElementById('color-hotspot-blue'),
@@ -65,6 +66,7 @@ enterButton.addEventListener('click', () => {
 hotspots.mountain.addEventListener('click', () => {
   colorWheelScreen.style.display = 'none';
   mainViewer.classList.add('visible');
+  if (viewerNote) viewerNote.style.display = 'block';
   init3DViewer();
 });
 
@@ -95,6 +97,7 @@ Object.keys(hotspots).forEach((type) => {
   hotspots[type].addEventListener('mouseenter', () => showInfo(type));
   hotspots[type].addEventListener('mouseleave', () => hideInfo(type));
 });
+
 
 // Dummy artistInfo to avoid error
 const artistInfo = {
